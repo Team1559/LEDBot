@@ -12,10 +12,17 @@ import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.TimedRobot;
 
+import edu.wpi.first.wpilibj.I2C;
+import edu.wpi.first.wpilibj.util.Color;
+import com.revrobotics.ColorSensorV3;
+
 /**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the build.gradle file in the
+ * The VM is configured to automatically run this class, and to call the
+ * functions corresponding to
+ * each mode, as described in the TimedRobot documentation. If you change the
+ * name of this class or
+ * the package after creating this project, you must also update the
+ * build.gradle file in the
  * project.
  */
 public class Robot extends TimedRobot {
@@ -28,17 +35,31 @@ public class Robot extends TimedRobot {
   // Store what the last hue of the first pixel is for rainbow lights
   private int m_rainbowFirstPixelHue;
 
+  /**
+   * Change the I2C port below to match the connection of your color sensor
+   */
+  private final I2C.Port i2cPort = I2C.Port.kOnboard;
 
   /**
-   * This function is run when the robot is first started up and should be used for any
+   * A Rev Color Sensor V3 object is constructed with an I2C port as a
+   * parameter. The device will be automatically initialized with default
+   * parameters.
+   */
+  private final ColorSensorV3 m_colorSensor = new ColorSensorV3(i2cPort);
+  private Color color;
+
+  /**
+   * This function is run when the robot is first started up and should be used
+   * for any
    * initialization code.
    */
   @Override
   public void robotInit() {
-    // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
+    // Instantiate our RobotContainer. This will perform all our button bindings,
+    // and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
-    
+
     // PWM port 9
     // Must be a PWM header, not MXP or DIO
     m_led = new AddressableLED(9);
@@ -55,36 +76,50 @@ public class Robot extends TimedRobot {
   }
 
   /**
-   * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
+   * This function is called every 20 ms, no matter the mode. Use this for items
+   * like diagnostics
    * that you want ran during disabled, autonomous, teleoperated and test.
    *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
+   * <p>
+   * This runs after the mode specific periodic functions, but before LiveWindow
+   * and
    * SmartDashboard integrated updating.
    */
   @Override
   public void robotPeriodic() {
-    // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
-    // commands, running already-scheduled commands, removing finished or interrupted commands,
-    // and running subsystem periodic() methods.  This must be called from the robot's periodic
+    // Runs the Scheduler. This is responsible for polling buttons, adding
+    // newly-scheduled
+    // commands, running already-scheduled commands, removing finished or
+    // interrupted commands,
+    // and running subsystem periodic() methods. This must be called from the
+    // robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
 
-    //rainbow();
-    //red();
-    //snake();
-    stroke();
+    color = m_colorSensor.getColor();
+    System.out.println((int)(color.red * 255) + " " + (int)(color.green * 255) + " " + (int)(color.blue * 255));
+    // rainbow();
+    // red();
+    // snake();
+    // stroke();
+    colorSensed();
     // Set the LEDs
     m_led.setData(m_ledBuffer);
   }
 
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+  }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+  }
 
-  /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
+  /**
+   * This autonomous runs the autonomous command selected by your
+   * {@link RobotContainer} class.
+   */
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
@@ -97,7 +132,8 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
   public void teleopInit() {
@@ -112,7 +148,8 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {}
+  public void teleopPeriodic() {
+  }
 
   @Override
   public void testInit() {
@@ -122,22 +159,26 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void testPeriodic() {
+  }
 
   /** This function is called once when the robot is first started up. */
   @Override
-  public void simulationInit() {}
+  public void simulationInit() {
+  }
 
   /** This function is called periodically whilst in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+  }
 
-  //LED Methods
-  private void red(){
+  // LED Methods
+  private void red() {
     for (var i = 0; i < m_ledBuffer.getLength(); i++) {
-        m_ledBuffer.setRGB(i, 255, 0, 0);
+      m_ledBuffer.setRGB(i, 255, 0, 0);
     }
   }
+
   private void rainbow() {
     // For every pixel
     for (var i = 0; i < m_ledBuffer.getLength(); i++) {
@@ -151,20 +192,34 @@ public class Robot extends TimedRobot {
     m_rainbowFirstPixelHue += 3;
     // Check bounds
     m_rainbowFirstPixelHue %= 180;
-    
+
   }
-  private void snake(){
+
+  private void snake() {
     for (var i = 0; i < m_ledBuffer.getLength(); i++) {
       m_ledBuffer.setRGB(i, 255, 255, 255);
-      if(i >=3) {m_ledBuffer.setRGB(i-3, 0, 0, 0);}
-      if(i >= 9) {m_ledBuffer.setRGB(i-9, 255, 0, 0);}
-      if(i >= 12) {m_ledBuffer.setRGB(i-12, 0, 0, 0);}
+      if (i >= 3) {
+        m_ledBuffer.setRGB(i - 3, 0, 0, 0);
+      }
+      if (i >= 9) {
+        m_ledBuffer.setRGB(i - 9, 255, 0, 0);
+      }
+      if (i >= 12) {
+        m_ledBuffer.setRGB(i - 12, 0, 0, 0);
+      }
     }
     m_led.setData(m_ledBuffer);
   }
+
   private void stroke() {
-    for (var i = 0; i < m_ledBuffer.getLength(); i++){
-      m_ledBuffer.setHSV(i, ((int)(Math.random()*256)), 255, ((int)(Math.random()*256)));
+    for (var i = 0; i < m_ledBuffer.getLength(); i++) {
+      m_ledBuffer.setHSV(i, ((int) (Math.random() * 256)), 255, ((int) (Math.random() * 256)));
+    }
+  }
+
+  private void colorSensed() {
+    for (var i = 0; i < m_ledBuffer.getLength(); i++) {
+      m_ledBuffer.setLED(i, color);
     }
   }
 
